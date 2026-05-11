@@ -1,0 +1,9 @@
+$ react-router dev
+Port 5173 is in use, trying another one...
+  ➜  Local:   http://localhost:5174/
+  ➜  Network: http://192.168.254.201:5174/
+  ➜  Network: http://100.103.239.90:5174/
+10:22:31 PM [react-router] Config changed.
+10:23:35 PM [react-router] Config saved
+10:25:13 PM [react-router] Config saved
+error: script "dev" exited with code 143
