@@ -165,11 +165,16 @@ export default function Drafts({ loaderData }: Route.ComponentProps) {
                     <TableHead className="w-16">Round</TableHead>
                     <TableHead>Player</TableHead>
                     <TableHead className="text-right">Pos</TableHead>
-                    <TableHead className="text-right">Team</TableHead>
+                    <TableHead className="text-right">Drafted By</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredPicks.map((pick: any) => (
+                  {filteredPicks.map((pick: any) => {
+                    const meta = pick.metadata?.metadata;
+                    const position = meta?.position || pick.player?.position;
+                    const playerName = pick.player?.fullName || pick.playerName
+                      || (meta?.first_name ? `${meta.first_name} ${meta.last_name}` : null);
+                    return (
                     <TableRow key={pick.id}>
                       <TableCell className="font-mono font-medium text-muted-foreground">
                         #{pick.overallPick || pick.pickNumber}
@@ -180,20 +185,21 @@ export default function Drafts({ loaderData }: Route.ComponentProps) {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {pick.player?.fullName || pick.playerName || (
+                        {playerName || (
                           <span className="text-muted-foreground italic text-sm">—</span>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        {pick.player?.position && (
-                          <PositionBadge position={pick.player.position} />
+                        {position && <PositionBadge position={position} />}
+                      </TableCell>
+                      <TableCell className="text-right text-sm font-medium">
+                        {pick.teamName || (
+                          <span className="text-muted-foreground">—</span>
                         )}
                       </TableCell>
-                      <TableCell className="text-right text-muted-foreground tabular-nums">
-                        {pick.player?.team || "—"}
-                      </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                   {filteredPicks.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center text-muted-foreground py-8">

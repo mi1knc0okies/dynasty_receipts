@@ -411,6 +411,14 @@ export async function getDraftWithPicks(draftId: string) {
   if (!draft) return null;
   const picks = await db.select().from(draftPicks).where(eq(draftPicks.draftId, draftId)).orderBy(asc(draftPicks.overallPick));
   const allPlayers = await db.select().from(players);
-  const picksWithInfo = picks.map((p: any) => ({ ...p, player: p.playerId ? allPlayers.find((ap: any) => ap.id === p.playerId) : null }));
+  const rosterToUser = await getRosterIdToUserMap([draft.leagueId]);
+  const picksWithInfo = picks.map((p: any) => {
+    const user = p.rosterId ? rosterToUser[`${draft.leagueId}:${p.rosterId}`] : null;
+    return {
+      ...p,
+      player: p.playerId ? allPlayers.find((ap: any) => ap.id === p.playerId) : null,
+      teamName: user ? (user.displayName || user.username) : p.rosterId ? `Team ${p.rosterId}` : null,
+    };
+  });
   return { draft, picks: picksWithInfo };
 }

@@ -14,6 +14,7 @@ import "./app.css";
 import { Trophy, ArrowLeftRight, ClipboardList, Users, Search, Sun, Moon } from "lucide-react";
 
 export const links: Route.LinksFunction = () => [
+  { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
   {
     rel: "preconnect",
@@ -72,9 +73,7 @@ function Navigation() {
             to="/"
             className="flex items-center gap-2.5 group"
           >
-            <div className="w-7 h-7 rounded bg-primary flex items-center justify-center shrink-0">
-              <Trophy className="w-4 h-4 text-primary-foreground" />
-            </div>
+            <img src="/favicon.svg" alt="Die Nasty" className="w-8 h-8 shrink-0" />
             <span
               className="text-2xl font-bold tracking-wide uppercase text-foreground group-hover:text-primary transition-colors"
               style={{ fontFamily: "var(--font-heading)" }}
