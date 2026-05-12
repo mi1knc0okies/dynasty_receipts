@@ -240,18 +240,22 @@ async function syncDrafts(leagueId: string) {
       // Get and store picks
       const picks = await getDraftPicks(d.draft_id);
       for (const pick of picks) {
-        await db.insert(draftPicks).values({
+        const pickValues = {
           draftId: d.draft_id,
           pickNumber: pick.pick_no || 0,
           round: pick.round || 0,
           overallPick: pick.pick_no,
           rosterId: pick.roster_id || null,
           playerId: pick.player_id || null,
-          playerName: pick.metadata?.first_name 
+          playerName: pick.metadata?.first_name
             ? `${pick.metadata.first_name} ${pick.metadata.last_name}`
             : pick.player_id,
           metadata: pick || {},
-        }).onConflictDoNothing();
+        };
+        await db.insert(draftPicks).values(pickValues).onConflictDoUpdate({
+          target: [draftPicks.draftId, draftPicks.pickNumber],
+          set: { rosterId: pickValues.rosterId, playerId: pickValues.playerId, playerName: pickValues.playerName, metadata: pickValues.metadata },
+        });
       }
       console.log(`  ✅ Draft ${d.season}: ${picks.length} picks`);
     }

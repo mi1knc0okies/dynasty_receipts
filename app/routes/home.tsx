@@ -271,7 +271,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                     PA
                   </SortButton>
                 </TableHead>
-                <TableHead className="text-right w-16 px-1">
+                <TableHead className="text-right w-16 px-4">
                   <SortButton active={sortKey === "diff"} direction={sortDir} onClick={() => handleSort("diff")} className="justify-end ml-auto">
                     Diff
                   </SortButton>
@@ -316,7 +316,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                     <TableCell className="text-right text-muted-foreground text-sm px-1 py-2">{s.losses || 0}</TableCell>
                     <TableCell className="text-right tabular-nums text-sm px-1 py-2">{pf.toFixed(1)}</TableCell>
                     <TableCell className="text-right tabular-nums text-muted-foreground text-sm px-1 py-2">{pa.toFixed(1)}</TableCell>
-                    <TableCell className={`text-right tabular-nums font-medium text-sm px-1 py-2 ${diff >= 0 ? "text-emerald-600" : "text-red-500"}`}>
+                    <TableCell className={`text-right tabular-nums font-medium text-sm px-4 py-2 ${diff >= 0 ? "text-emerald-600" : "text-red-500"}`}>
                       {diff > 0 ? "+" : ""}{diff.toFixed(1)}
                     </TableCell>
                   </TableRow>

@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { leagues, rosters, trades, players, ktcRankings, users, drafts, draftPicks, waivers, appSettings } from "../schema";
-import { eq, desc, inArray, asc } from "drizzle-orm";
+import { eq, desc, inArray, asc, and } from "drizzle-orm";
 
 // ─── App Settings ────────────────────────────────────────────────
 
@@ -116,8 +116,7 @@ export async function getLeagueWithData(leagueId: string) {
 
 export async function getRosterWithPlayers(rosterId: number, leagueId: string) {
   const roster = (await db.select().from(rosters)
-    .where(eq(rosters.rosterId, rosterId))
-    .where(eq(rosters.leagueId, leagueId)))[0]
+    .where(and(eq(rosters.rosterId, rosterId), eq(rosters.leagueId, leagueId))))[0]
     ?? (await db.select().from(rosters).where(eq(rosters.rosterId, rosterId)))[0];
   if (!roster) return null;
 
@@ -317,9 +316,17 @@ export async function getFormattedWaivers(leagueId?: string) {
 
 export async function getFreeAgentRankings(leagueId: string) {
   const leagueRosters = await db.select({ players: rosters.players }).from(rosters).where(eq(rosters.leagueId, leagueId));
-  const rosteredPlayerIds = new Set(leagueRosters.flatMap((r: any) => (r.players as string[]) || []));
+  const rosteredIds = [...new Set(leagueRosters.flatMap((r: any) => (r.players as string[]) || []))];
+
+  // Resolve IDs → full names for name-based KTC matching
+  const rosteredNames = new Set<string>();
+  if (rosteredIds.length > 0) {
+    const rostered = await db.select({ fullName: players.fullName }).from(players).where(inArray(players.id, rosteredIds));
+    for (const p of rostered) if (p.fullName) rosteredNames.add(p.fullName);
+  }
+
   const sfRankings = await db.select().from(ktcRankings).where(eq(ktcRankings.superflex, 1)).orderBy(ktcRankings.rank);
-  return sfRankings.filter((r: any) => !rosteredPlayerIds.has(r.playerName));
+  return sfRankings.filter((r: any) => !rosteredNames.has(r.playerName));
 }
 
 export async function getLeagueDrafts(leagueId?: string) {
@@ -327,6 +334,76 @@ export async function getLeagueDrafts(leagueId?: string) {
     return db.select().from(drafts).where(eq(drafts.leagueId, leagueId)).orderBy(desc(drafts.season));
   }
   return db.select().from(drafts).orderBy(desc(drafts.season));
+}
+
+export async function getPlayerWithTransactions(playerId: string) {
+  const allLeagues = await db.select().from(leagues);
+  const leagueIds = allLeagues.map((l: any) => l.id);
+
+  const player = (await db.select().from(players).where(eq(players.id, playerId)))[0] ?? null;
+
+  const rosterToUser = await getRosterIdToUserMap(leagueIds);
+
+  const allTrades = await db.select().from(trades)
+    .where(inArray(trades.leagueId, leagueIds))
+    .orderBy(desc(trades.timestamp));
+
+  const playerTrades = allTrades
+    .filter((t: any) => {
+      const adds = (t.adds as Record<string, string>) || {};
+      const drops = (t.drops as Record<string, string>) || {};
+      return playerId in adds || playerId in drops;
+    })
+    .map((t: any) => {
+      const league = allLeagues.find((l: any) => l.id === t.leagueId);
+      const adds = (t.adds as Record<string, string>) || {};
+      const drops = (t.drops as Record<string, string>) || {};
+      const rIds = (t.rosterIds as number[]) || [];
+
+      const involvedTeams = rIds.map((rid: number) => {
+        const user = rosterToUser[`${t.leagueId}:${rid}`];
+        return user?.displayName || user?.username || `Team ${rid}`;
+      });
+
+      const toRosterId = adds[playerId] ? Number(adds[playerId]) : null;
+      const fromRosterId = drops[playerId] ? Number(drops[playerId]) : null;
+      const toUser = toRosterId ? rosterToUser[`${t.leagueId}:${toRosterId}`] : null;
+      const fromUser = fromRosterId ? rosterToUser[`${t.leagueId}:${fromRosterId}`] : null;
+
+      return {
+        ...t,
+        kind: "trade" as const,
+        season: league?.season || "",
+        involvedTeams,
+        toTeamName: toUser ? (toUser.displayName || toUser.username) : toRosterId ? `Team ${toRosterId}` : null,
+        fromTeamName: fromUser ? (fromUser.displayName || fromUser.username) : fromRosterId ? `Team ${fromRosterId}` : null,
+        date: t.timestamp ? new Date(t.timestamp).toLocaleDateString() : "Unknown",
+      };
+    });
+
+  const playerWaivers = await db.select().from(waivers)
+    .where(eq(waivers.playerId, playerId))
+    .orderBy(desc(waivers.timestamp));
+
+  const formattedWaivers = playerWaivers.map((w: any) => {
+    const league = allLeagues.find((l: any) => l.id === w.leagueId);
+    const user = rosterToUser[`${w.leagueId}:${w.rosterId}`];
+    return {
+      ...w,
+      kind: "waiver" as const,
+      season: league?.season || "",
+      teamName: user ? (user.displayName || user.username) : `Team ${w.rosterId}`,
+      date: w.timestamp ? new Date(w.timestamp).toLocaleDateString() : "Unknown",
+    };
+  });
+
+  const timeline = [...playerTrades, ...formattedWaivers].sort((a: any, b: any) => {
+    const aTime = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+    const bTime = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+    return bTime - aTime;
+  });
+
+  return { player, timeline };
 }
 
 export async function getDraftWithPicks(draftId: string) {

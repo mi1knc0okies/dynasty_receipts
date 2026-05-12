@@ -6,6 +6,7 @@ import {
 import { Badge } from "../components/ui/badge";
 import { PositionBadge } from "../components/position-badge";
 import { Separator } from "../components/ui/separator";
+import { Link } from "react-router";
 import { ArrowLeftRight, Calendar, Package, UserCircle, ArrowRight } from "lucide-react";
 
 export async function loader() {
@@ -28,7 +29,7 @@ export default function Trades({ loaderData }: Route.ComponentProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+        <h1 className="text-4xl font-bold uppercase tracking-wide font-heading flex items-center gap-2">
           <ArrowLeftRight className="w-7 h-7 text-primary" />
           Trade History
         </h1>
@@ -59,8 +60,6 @@ export default function Trades({ loaderData }: Route.ComponentProps) {
                     <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                       <Calendar className="w-3.5 h-3.5" />
                       {trade.date}
-                      <Separator orientation="vertical" className="h-3" />
-                      Week {trade.week}
                       {trade.season && (
                         <>
                           <Separator orientation="vertical" className="h-3" />
@@ -102,7 +101,7 @@ export default function Trades({ loaderData }: Route.ComponentProps) {
                             <div className="flex items-center gap-3 min-w-0">
                               <PositionBadge position={ap.player.position} />
                               <div className="min-w-0">
-                                <p className="font-medium text-sm truncate">{ap.player.fullName}</p>
+                                <Link to={`/player/${ap.player.id}`} className="font-medium text-sm truncate hover:text-primary transition-colors block">{ap.player.fullName}</Link>
                                 <p className="text-xs text-muted-foreground">{ap.player.team}</p>
                               </div>
                             </div>
@@ -134,7 +133,7 @@ export default function Trades({ loaderData }: Route.ComponentProps) {
                             <div className="flex items-center gap-3 min-w-0">
                               <PositionBadge position={dp.player.position} />
                               <div className="min-w-0">
-                                <p className="font-medium text-sm truncate">{dp.player.fullName}</p>
+                                <Link to={`/player/${dp.player.id}`} className="font-medium text-sm truncate hover:text-primary transition-colors block">{dp.player.fullName}</Link>
                                 <p className="text-xs text-muted-foreground">{dp.player.team}</p>
                               </div>
                             </div>

@@ -1,6 +1,7 @@
 import type { Route } from "./+types/waivers";
 import { getFormattedWaivers, getLeagueIds } from "../.server/lib/data";
 import { useState } from "react";
+import { Link } from "react-router";
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from "../components/ui/card";
@@ -47,7 +48,7 @@ export default function Waivers({ loaderData }: Route.ComponentProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+        <h1 className="text-4xl font-bold uppercase tracking-wide font-heading flex items-center gap-2">
           <Users className="w-7 h-7 text-primary" />
           Waiver Wire & Free Agents
         </h1>
@@ -146,7 +147,9 @@ export default function Waivers({ loaderData }: Route.ComponentProps) {
                           </Badge>
                         </TableCell>
                         <TableCell className="py-2">
-                          <div className="font-medium text-sm">{w.player?.fullName || w.playerName || "Unknown"}</div>
+                          <Link to={`/player/${w.playerId}`} className="font-medium text-sm hover:text-primary transition-colors">
+                            {w.player?.fullName || w.playerName || "Unknown"}
+                          </Link>
                         </TableCell>
                         <TableCell className="text-right py-2">
                           {w.player?.position && <PositionBadge position={w.player.position} />}

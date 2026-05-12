@@ -61,7 +61,7 @@ export default function Players({ loaderData }: Route.ComponentProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+        <h1 className="text-4xl font-bold uppercase tracking-wide font-heading flex items-center gap-2">
           <Search className="w-7 h-7 text-primary" />
           Free Agents
         </h1>
@@ -138,12 +138,14 @@ export default function Players({ loaderData }: Route.ComponentProps) {
                     {player.team || "—"}
                   </TableCell>
                   <TableCell className="text-right tabular-nums font-semibold">
-                    {player.value.toLocaleString()}
+                    {(player.value ?? 0).toLocaleString()}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Badge variant="outline" className="text-xs font-mono">
-                      T{player.tier}
-                    </Badge>
+                    {player.tier != null && (
+                      <Badge variant="outline" className="text-xs font-mono">
+                        T{player.tier}
+                      </Badge>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

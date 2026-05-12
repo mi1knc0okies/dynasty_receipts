@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import type { Route } from "./+types/roster";
-import { getRosterWithPlayers, getRosterTransactionHistory } from "../.server/lib/data";
+import { getRosterWithPlayers, getRosterTransactionHistory, getLeagueIds } from "../.server/lib/data";
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from "../components/ui/card";
@@ -15,7 +15,9 @@ import {
 import { ArrowLeft, Trophy, TrendingUp, Star, Layers, ArrowRightLeft, Users, Plus, Minus, Package, Calendar } from "lucide-react";
 
 export async function loader({ params }: Route.LoaderArgs) {
-  const roster = await getRosterWithPlayers(parseInt(params.teamId));
+  const leagueIds = await getLeagueIds();
+  const primaryLeagueId = leagueIds[0] ?? "";
+  const roster = await getRosterWithPlayers(parseInt(params.teamId), primaryLeagueId);
   const history = await getRosterTransactionHistory(parseInt(params.teamId));
   return { roster, history };
 }

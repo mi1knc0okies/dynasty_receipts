@@ -50,7 +50,7 @@ export default function Drafts({ loaderData }: Route.ComponentProps) {
   if (drafts.length === 0) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+        <h1 className="text-4xl font-bold uppercase tracking-wide font-heading flex items-center gap-2">
           <ClipboardList className="w-7 h-7 text-primary" />
           Draft History
         </h1>
@@ -82,7 +82,7 @@ export default function Drafts({ loaderData }: Route.ComponentProps) {
         <Link to="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-2 transition-colors">
           <ArrowLeft className="w-4 h-4 mr-1" /> Back to Standings
         </Link>
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+        <h1 className="text-4xl font-bold uppercase tracking-wide font-heading flex items-center gap-2">
           <ClipboardList className="w-7 h-7 text-primary" />
           Draft History
         </h1>
