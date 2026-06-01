@@ -273,6 +273,19 @@ export async function getFormattedTrades(leagueId?: string) {
       };
     });
 
+    const rawBudget = (t.metadata as any)?.waiver_budget as any[] || [];
+    const faabTransfers = rawBudget.map((b: any) => {
+      const senderUser = rosterToUser[`${t.leagueId}:${b.sender}`];
+      const receiverUser = rosterToUser[`${t.leagueId}:${b.receiver}`];
+      return {
+        amount: b.amount,
+        senderRosterId: b.sender,
+        receiverRosterId: b.receiver,
+        fromTeamName: senderUser ? (senderUser.displayName || senderUser.username) : `Team ${b.sender}`,
+        toTeamName: receiverUser ? (receiverUser.displayName || receiverUser.username) : `Team ${b.receiver}`,
+      };
+    });
+
     return {
       ...t,
       season: league?.season || "",
@@ -280,6 +293,7 @@ export async function getFormattedTrades(leagueId?: string) {
       addedPlayers,
       droppedPlayers,
       draftPicks,
+      faabTransfers,
       date: t.timestamp ? new Date(t.timestamp).toLocaleDateString() : "Unknown",
     };
   });
@@ -326,7 +340,7 @@ export async function getFreeAgentRankings(leagueId: string) {
   }
 
   const sfRankings = await db.select().from(ktcRankings).where(eq(ktcRankings.superflex, 1)).orderBy(ktcRankings.rank);
-  return sfRankings.filter((r: any) => !rosteredNames.has(r.playerName));
+  return sfRankings.filter((r: any) => r.position !== "PI" && !rosteredNames.has(r.playerName));
 }
 
 export async function getLeagueDrafts(leagueId?: string) {

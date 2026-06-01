@@ -150,6 +150,8 @@ async function syncTransactions(leagueId: string, leagueSeason?: string, allPlay
         const adds = t.adds || {};
         const drops = t.drops || {};
         
+        const bid = t.type === "waiver" ? (t.settings?.waiver_bid ?? null) : null;
+
         for (const [playerId, rosterId] of Object.entries(adds)) {
           const p = allPlayersMap[playerId];
           const playerName = p?.full_name || (p ? `${p.first_name || ""} ${p.last_name || ""}`.trim() : null) || null;
@@ -158,11 +160,11 @@ async function syncTransactions(leagueId: string, leagueSeason?: string, allPlay
             id: `${t.transaction_id}_${playerId}_add`,
             leagueId, season, week: t.leg || 1,
             type: "add", playerId, playerName, playerPosition, rosterId: Number(rosterId),
-            status: t.status || "", metadata: t || {},
+            bid, status: t.status || "", metadata: t || {},
             timestamp: t.created ? new Date(t.created) : undefined,
           }).onConflictDoUpdate({
             target: waivers.id,
-            set: { playerName, playerPosition },
+            set: { playerName, playerPosition, bid },
           });
           waiverCount++;
         }
@@ -175,11 +177,11 @@ async function syncTransactions(leagueId: string, leagueSeason?: string, allPlay
             id: `${t.transaction_id}_${playerId}_drop`,
             leagueId, season, week: t.leg || 1,
             type: "drop", playerId, playerName, playerPosition, rosterId: Number(rosterId),
-            status: t.status || "", metadata: t || {},
+            bid, status: t.status || "", metadata: t || {},
             timestamp: t.created ? new Date(t.created) : undefined,
           }).onConflictDoUpdate({
             target: waivers.id,
-            set: { playerName, playerPosition },
+            set: { playerName, playerPosition, bid },
           });
           waiverCount++;
         }

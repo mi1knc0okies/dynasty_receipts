@@ -123,6 +123,7 @@ export default function Waivers({ loaderData }: Route.ComponentProps) {
                       <TableHead>Player</TableHead>
                       <TableHead className="text-right">Pos</TableHead>
                       <TableHead>Team</TableHead>
+                      <TableHead className="text-right w-16">FAAB</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -158,6 +159,13 @@ export default function Waivers({ loaderData }: Route.ComponentProps) {
                           <Badge variant="outline" className="text-xs font-normal">
                             {w.teamName}
                           </Badge>
+                        </TableCell>
+                        <TableCell className="text-right py-2">
+                          {w.bid != null && w.bid > 0 ? (
+                            <span className="text-xs font-semibold text-emerald-600">${w.bid}</span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground/40">—</span>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}

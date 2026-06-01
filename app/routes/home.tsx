@@ -26,14 +26,14 @@ export async function loader() {
   if (!primaryId) return { data: null, recentActivity: [], configured: false };
   const data = await getLeagueWithData(primaryId);
 
-  const [trades, waivers] = await Promise.all([
+  const [tradesList, waiversList] = await Promise.all([
     getFormattedTrades(primaryId),
     getFormattedWaivers(primaryId),
   ]);
 
   const recentActivity = [
-    ...trades.map((t: any) => ({ ...t, kind: "trade" })),
-    ...waivers.map((w: any) => ({ ...w, kind: "waiver" })),
+    ...tradesList.map((t: any) => ({ ...t, kind: "trade" })),
+    ...waiversList.map((w: any) => ({ ...w, kind: "waiver" })),
   ]
     .sort((a: any, b: any) => {
       const aTime = a.timestamp ? new Date(a.timestamp).getTime() : 0;
@@ -42,7 +42,7 @@ export async function loader() {
     })
     .slice(0, 8);
 
-  return { data, recentActivity, configured: true };
+  return { data, recentActivity, totalTrades: tradesList.length, configured: true };
 }
 
 export function meta({}: Route.MetaArgs) {
@@ -81,7 +81,7 @@ function SortButton({
 }
 
 export default function Home({ loaderData }: Route.ComponentProps) {
-  const { data, recentActivity, configured } = loaderData;
+  const { data, recentActivity, totalTrades, configured } = loaderData;
   const [sortKey, setSortKey] = useState<SortKey>("default");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
 
@@ -197,8 +197,8 @@ export default function Home({ loaderData }: Route.ComponentProps) {
             <ArrowRightLeft className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{recentActivity.filter((a: any) => a.kind === "trade").length}</div>
-            <p className="text-xs text-muted-foreground">Shown recently</p>
+            <div className="text-2xl font-bold">{totalTrades}</div>
+            <p className="text-xs text-muted-foreground">This season</p>
           </CardContent>
         </Card>
         <Card>
@@ -246,7 +246,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                     Team
                   </SortButton>
                 </TableHead>
-                <TableHead className="text-right w-24 px-2">
+                <TableHead className="text-right w-24 px-2 hidden sm:table-cell">
                   <SortButton active={sortKey === "ktc"} direction={sortDir} onClick={() => handleSort("ktc")} className="justify-end ml-auto">
                     KTC (SF)
                   </SortButton>
@@ -261,17 +261,17 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                     L
                   </SortButton>
                 </TableHead>
-                <TableHead className="text-right w-16 px-1">
+                <TableHead className="text-right w-16 px-1 hidden md:table-cell">
                   <SortButton active={sortKey === "pf"} direction={sortDir} onClick={() => handleSort("pf")} className="justify-end ml-auto">
                     PF
                   </SortButton>
                 </TableHead>
-                <TableHead className="text-right w-16 px-1">
+                <TableHead className="text-right w-16 px-1 hidden md:table-cell">
                   <SortButton active={sortKey === "pa"} direction={sortDir} onClick={() => handleSort("pa")} className="justify-end ml-auto">
                     PA
                   </SortButton>
                 </TableHead>
-                <TableHead className="text-right w-16 px-4">
+                <TableHead className="text-right w-16 px-4 hidden lg:table-cell">
                   <SortButton active={sortKey === "diff"} direction={sortDir} onClick={() => handleSort("diff")} className="justify-end ml-auto">
                     Diff
                   </SortButton>
@@ -304,7 +304,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                         {roster.user?.displayName || roster.user?.username || `Team ${roster.rosterId}`}
                       </Link>
                     </TableCell>
-                    <TableCell className="text-right px-2 py-2">
+                    <TableCell className="text-right px-2 py-2 hidden sm:table-cell">
                       <div className="flex items-center justify-end gap-1.5">
                         <div className="w-10 h-1.5 rounded-full bg-muted overflow-hidden hidden sm:block">
                           <div className="h-full bg-primary rounded-full" style={{ width: `${ktcPct}%` }} />
@@ -314,9 +314,9 @@ export default function Home({ loaderData }: Route.ComponentProps) {
                     </TableCell>
                     <TableCell className="text-right font-semibold text-sm px-1 py-2">{s.wins || 0}</TableCell>
                     <TableCell className="text-right text-muted-foreground text-sm px-1 py-2">{s.losses || 0}</TableCell>
-                    <TableCell className="text-right tabular-nums text-sm px-1 py-2">{pf.toFixed(1)}</TableCell>
-                    <TableCell className="text-right tabular-nums text-muted-foreground text-sm px-1 py-2">{pa.toFixed(1)}</TableCell>
-                    <TableCell className={`text-right tabular-nums font-medium text-sm px-4 py-2 ${diff >= 0 ? "text-emerald-600" : "text-red-500"}`}>
+                    <TableCell className="text-right tabular-nums text-sm px-1 py-2 hidden md:table-cell">{pf.toFixed(1)}</TableCell>
+                    <TableCell className="text-right tabular-nums text-muted-foreground text-sm px-1 py-2 hidden md:table-cell">{pa.toFixed(1)}</TableCell>
+                    <TableCell className={`text-right tabular-nums font-medium text-sm px-4 py-2 hidden lg:table-cell ${diff >= 0 ? "text-emerald-600" : "text-red-500"}`}>
                       {diff > 0 ? "+" : ""}{diff.toFixed(1)}
                     </TableCell>
                   </TableRow>
